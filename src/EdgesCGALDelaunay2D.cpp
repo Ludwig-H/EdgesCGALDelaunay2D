@@ -83,7 +83,6 @@ int main(int argc, char** argv){
   using P2 = K::Point_2;
 
   DT dt;
-  dt.reserve(N);
   for(size_t i=0;i<N;++i){
     const double* r = &P[i*2];
     auto vh = dt.insert(P2(r[0], r[1]));
