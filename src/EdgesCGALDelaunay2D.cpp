@@ -3,6 +3,9 @@
 #include <CGAL/Delaunay_triangulation_2.h>
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
 #include <CGAL/Triangulation_face_base_2.h>
+#include <CGAL/Spatial_sort_traits_adapter_2.h>
+#include <CGAL/property_map.h>
+#include <CGAL/spatial_sort.h>
 
 #include <cstdint>
 #include <cstdio>
@@ -89,13 +92,22 @@ int main(int argc, char** argv){
   using TDS= CGAL::Triangulation_data_structure_2<Vb, Fb>;
   using DT = CGAL::Delaunay_triangulation_2<K, TDS>;
   using P2 = K::Point_2;
+  using Point_with_info = std::pair<P2, uint64_t>;
+  using Sort_traits = CGAL::Spatial_sort_traits_adapter_2<K, CGAL::First_of_pair_property_map<Point_with_info>>;
 
-  DT dt;
+  std::vector<Point_with_info> pts;
+  pts.reserve(N);
   for(size_t i=0;i<N;++i){
     const double* r = &P[i*2];
-    auto vh = dt.insert(P2(r[0], r[1]));
-    if(vh != DT::Vertex_handle()) vh->info() = (uint64_t)i;
+    pts.emplace_back(P2(r[0], r[1]), (uint64_t)i);
   }
+  P.clear(); P.shrink_to_fit();
+
+  CGAL::spatial_sort(pts.begin(), pts.end(), Sort_traits());
+
+  DT dt;
+  dt.insert(pts.begin(), pts.end());
+  pts.clear(); pts.shrink_to_fit();
 
   std::vector<std::pair<uint64_t,uint64_t>> E;
   E.reserve(3*N);
