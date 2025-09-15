@@ -26,7 +26,15 @@ static Header read_header(std::istream& in){
   if(ver[0]==1){ in.read(reinterpret_cast<char*>(&h16),2); hlen=h16; }
   else { in.read(reinterpret_cast<char*>(&h32),4); hlen=h32; }
   std::string hdr(hlen,'\0'); in.read(hdr.data(),hlen); if(!in) die("header .npy tronqué");
-  auto findq=[&](size_t p){auto q1=hdr.find('\'',p);auto q2=hdr.find('\'',q1+1);return std::pair<size_t,size_t>(q1,q2);};
+  auto findq=[&](size_t p){
+    auto key_end = hdr.find('\'', p);
+    if(key_end==std::string::npos) die("header invalide (quotes)");
+    auto val_beg = hdr.find('\'', key_end+1);
+    if(val_beg==std::string::npos) die("header invalide (quotes)");
+    auto val_end = hdr.find('\'', val_beg+1);
+    if(val_end==std::string::npos) die("header invalide (quotes)");
+    return std::pair<size_t,size_t>(val_beg,val_end);
+  };
   auto pd=hdr.find("descr"); if(pd==std::string::npos) die("header invalide (descr)"); auto [q1,q2]=findq(pd); h.descr=hdr.substr(q1+1,q2-q1-1);
   auto pf=hdr.find("fortran_order"); if(pf==std::string::npos) die("header invalide (fortran_order)"); h.fortran=hdr.find("True",pf)!=std::string::npos;
   auto ps=hdr.find("shape"); if(ps==std::string::npos) die("header invalide (shape)");
