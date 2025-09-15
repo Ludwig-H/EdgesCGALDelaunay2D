@@ -24,4 +24,5 @@ cmake --build build -j
 
 ## Perf
 - Kernel: `Exact_predicates_inexact_constructions_kernel` (rapide, robuste).
+- Pré-tri: tri spatial CGAL des points avant insertion pour accélérer l'insertion par lot sur les très grands jeux de données.
 - On itère `finite_edges` (pas de post‑filtrage infini), puis tri + unique pour assurer l’unicité.
